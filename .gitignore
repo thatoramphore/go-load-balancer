@@ -1,0 +1,17 @@
+# Binaries
+*.exe
+
+# Config files (if they contain sensitive information)
+.apiConfig
+
+# IDE/editor settings (add specific files/directories based on your editor)
+.vscode/
+.idea/
+*.swp
+
+# Build artifacts
+*.out
+*.log
+
+# Dependency directories
+vendor/
