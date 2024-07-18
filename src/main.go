@@ -19,7 +19,7 @@ type simpleServer struct {
 	proxy *httputil.ReverseProxy
 }
 
-func newServer(addr string) *simpleServer {
+func newSimpleServer(addr string) *simpleServer {
 	serverUrl, err := url.Parse(addr)
 	handleErr(err)
 
@@ -48,4 +48,48 @@ func handleErr(err error){
 		fmt.Println("error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func(s *simpleServer) Address() string { return s.addr }
+
+func (s *simpleServer) IsAlive() bool { return true }
+
+func (s *simpleServer) Server(w http.ResponseWriter, r *http.Request) {
+	s.proxy.ServeHTTP(w, r)
+}
+
+func (lb *LoadBalancer) getNextAvailableServer() Server{
+	server := lb.servers[lb.roundRobinCount%len(lb.servers)]
+	for !server.IsAlive(){
+		lb.roundRobinCount++
+		server = lb.servers[lb.roundRobinCount%len(lb.servers)]
+	}
+	lb.roundRobinCount++
+	return server
+} 
+
+func (lb *LoadBalancer) serveProxy(w http.ResponseWriter, r *http.Request){
+	targetServer := lb.getNextAvailableServer()
+	fmt.Printf("forwarding request to address %q\n", targetServer.Address())
+	targetServer.Server(w, r)
+} 
+
+func main() {
+	//create multiple servers
+	servers := []Server{
+		//live servers for testing purposes
+		newSimpleServer("https://www.facebook.com"),
+		newSimpleServer("https://www.duckduckgo.com"),
+	}
+
+	//create a load balancer, send a all the servers to lb on port 8080
+	lb := NewLoadBalancer("8080", servers)
+	handleRedirect := func(w http.ResponseWriter, r *http.Request) {
+		lb.serveProxy(w, r)
+	}
+
+	http.HandleFunc("/", handleRedirect)
+
+	fmt.Printf("Serving requests at 'localhost:%s'\n", lb.port)
+	http.ListenAndServe(":" + lb.port, nil)
 }
