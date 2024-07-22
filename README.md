@@ -1,6 +1,4 @@
-# Load Balancer with Golang!
-
-![Banner](./assets/images/banner.png)
+# Load Balancer with Golang! ![Go Mascot](./assets/images/go.png)
 
 #### This project utilizes [Go](https://go.dev/) to build a load balancer and [http util package](https://pkg.go.dev/net/http/httputil) for a proxy server. 
 ⚖️**Load Balancer** is a powerful a program that distributes incoming network traffic across multiple servers to ensure no single server becomes overwhelmed.
